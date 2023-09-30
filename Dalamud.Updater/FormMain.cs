@@ -88,16 +88,20 @@ namespace Dalamud.Updater
             InitializeComponent();
             InitializePIDCheck();
             InitializeDeleteShit();
-            addonDirectory = Directory.GetParent(Assembly.GetExecutingAssembly().Location);
+
             dalamudLoadingOverlay = new DalamudLoadingOverlay(this);
             dalamudLoadingOverlay.OnProgressBar += setProgressBar;
             dalamudLoadingOverlay.OnSetVisible += setVisible;
             dalamudLoadingOverlay.OnStatusLabel += setStatus;
-            addonDirectory = new DirectoryInfo(Path.Combine(Directory.GetParent(Assembly.GetExecutingAssembly().Location).FullName, "XIVLauncher", "addon"));
-            runtimeDirectory = new DirectoryInfo(Path.Combine(Directory.GetParent(Assembly.GetExecutingAssembly().Location).FullName, "XIVLauncher", "runtime"));
-            xivlauncherDirectory = new DirectoryInfo(Path.Combine(Directory.GetParent(Assembly.GetExecutingAssembly().Location).FullName, "XIVLauncher"));
-            assetDirectory = new DirectoryInfo(Path.Combine(Directory.GetParent(Assembly.GetExecutingAssembly().Location).FullName, "XIVLauncher", "dalamudAssets"));
-            configDirectory = new DirectoryInfo(Path.Combine(Directory.GetParent(Assembly.GetExecutingAssembly().Location).FullName, "XIVLauncher"));
+
+            var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            var xivlauncherPath = Path.Combine(appDataPath, "XIVLauncher");
+            xivlauncherDirectory = new DirectoryInfo(xivlauncherPath);
+            addonDirectory = new DirectoryInfo(Path.Combine(xivlauncherPath, "addon"));
+            runtimeDirectory = new DirectoryInfo(Path.Combine(xivlauncherPath, "runtime"));
+            assetDirectory = new DirectoryInfo(Path.Combine(xivlauncherPath, "dalamudAssets"));
+            configDirectory = new DirectoryInfo(xivlauncherPath);
+
             //labelVersion.Text = string.Format("卫月版本 : {0}", getVersion());
             string[] strArgs = Environment.GetCommandLineArgs();
             if (strArgs.Length >= 2 && strArgs[1].Equals("-startup"))
@@ -163,28 +167,25 @@ namespace Dalamud.Updater
         #region init
         private static void InitLogging()
         {
-            var baseDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-
-            var logPath = Path.Combine(baseDirectory, "Dalamud.Updater.log");
+            var xivlauncherPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher");
+            var logPath = Path.Combine(xivlauncherPath, "Dalamud.Updater.log");
 
             var levelSwitch = new LoggingLevelSwitch();
-
 #if DEBUG
             levelSwitch.MinimumLevel = LogEventLevel.Verbose;
 #else
             levelSwitch.MinimumLevel = LogEventLevel.Information;
 #endif
 
-
             Log.Logger = new LoggerConfiguration()
-                //.WriteTo.Console(standardErrorFromLevel: LogEventLevel.Verbose)
                 .WriteTo.Async(a => a.File(logPath))
                 .MinimumLevel.ControlledBy(levelSwitch)
                 .CreateLogger();
         }
         private void InitializeConfig()
         {
-            this.config = Config.Load(Path.Combine(Directory.GetParent(Assembly.GetExecutingAssembly().Location).FullName, "DalamudUpdaterConfig.json"));
+            var xivlauncherPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher");
+            this.config = Config.Load(Path.Combine(xivlauncherPath, "DalamudUpdaterConfig.json"));
         }
 
         private void InitializeDeleteShit()
@@ -490,7 +491,6 @@ namespace Dalamud.Updater
         private DalamudStartInfo GeneratingDalamudStartInfo(Process process, string dalamudPath, int injectDelay)
         {
             var ffxivDir = Path.GetDirectoryName(process.MainModule.FileName);
-            var appDataDir = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
             var xivlauncherDir = xivlauncherDirectory.FullName;
 
             var gameVerStr = File.ReadAllText(Path.Combine(ffxivDir, "ffxivgame.ver"));
