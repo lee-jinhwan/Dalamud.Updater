@@ -32,7 +32,7 @@ namespace Dalamud.Updater
 
         private readonly DirectoryInfo addonDirectory;
         private readonly DirectoryInfo runtimeDirectory;
-        private readonly DirectoryInfo xivlauncherDirectory;
+        private readonly DirectoryInfo dalamudDirectory;
         private readonly DirectoryInfo assetDirectory;
         private readonly DirectoryInfo configDirectory;
 
@@ -96,11 +96,12 @@ namespace Dalamud.Updater
 
             var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             var xivlauncherPath = Path.Combine(appDataPath, "XIVLauncher");
-            xivlauncherDirectory = new DirectoryInfo(xivlauncherPath);
-            addonDirectory = new DirectoryInfo(Path.Combine(xivlauncherPath, "addon"));
+            var dalamudPath = Path.Combine(appDataPath, "Dalamud KR");
+            dalamudDirectory = new DirectoryInfo(dalamudPath);
+            addonDirectory = new DirectoryInfo(Path.Combine(dalamudPath, "addon"));
             runtimeDirectory = new DirectoryInfo(Path.Combine(xivlauncherPath, "runtime"));
-            assetDirectory = new DirectoryInfo(Path.Combine(xivlauncherPath, "dalamudAssets"));
-            configDirectory = new DirectoryInfo(xivlauncherPath);
+            assetDirectory = new DirectoryInfo(Path.Combine(dalamudPath, "dalamudAssets"));
+            configDirectory = new DirectoryInfo(dalamudPath);
 
             //labelVersion.Text = string.Format("卫月版本 : {0}", getVersion());
             string[] strArgs = Environment.GetCommandLineArgs();
@@ -167,8 +168,8 @@ namespace Dalamud.Updater
         #region init
         private static void InitLogging()
         {
-            var xivlauncherPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher");
-            var logPath = Path.Combine(xivlauncherPath, "Dalamud.Updater.log");
+            var dalamudPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Dalamud KR");
+            var logPath = Path.Combine(dalamudPath, "Dalamud.Updater.log");
 
             var levelSwitch = new LoggingLevelSwitch();
 #if DEBUG
@@ -184,8 +185,8 @@ namespace Dalamud.Updater
         }
         private void InitializeConfig()
         {
-            var xivlauncherPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "XIVLauncher");
-            this.config = Config.Load(Path.Combine(xivlauncherPath, "DalamudUpdaterConfig.json"));
+            var dalamudPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Dalamud KR");
+            this.config = Config.Load(Path.Combine(dalamudPath, "DalamudUpdaterConfig.json"));
         }
 
         private void InitializeDeleteShit()
@@ -491,15 +492,15 @@ namespace Dalamud.Updater
         private DalamudStartInfo GeneratingDalamudStartInfo(Process process, string dalamudPath, int injectDelay)
         {
             var ffxivDir = Path.GetDirectoryName(process.MainModule.FileName);
-            var xivlauncherDir = xivlauncherDirectory.FullName;
+            var dalamudDir = dalamudDirectory.FullName;
 
             var gameVerStr = File.ReadAllText(Path.Combine(ffxivDir, "ffxivgame.ver"));
 
             var startInfo = new DalamudStartInfo
             {
-                ConfigurationPath = Path.Combine(xivlauncherDir, "dalamudConfig.json"),
-                PluginDirectory = Path.Combine(xivlauncherDir, "installedPlugins"),
-                DefaultPluginDirectory = Path.Combine(xivlauncherDir, "devPlugins"),
+                ConfigurationPath = Path.Combine(dalamudDir, "dalamudConfig.json"),
+                PluginDirectory = Path.Combine(dalamudDir, "installedPlugins"),
+                DefaultPluginDirectory = Path.Combine(dalamudDir, "devPlugins"),
                 RuntimeDirectory = runtimeDirectory.FullName,
                 AssetDirectory = this.dalamudUpdater.AssetDirectory.FullName,
                 GameVersion = gameVerStr,
